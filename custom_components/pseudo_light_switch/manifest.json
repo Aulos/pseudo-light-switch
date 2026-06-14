@@ -1,0 +1,14 @@
+{
+  "domain": "pseudo_light_switch",
+  "name": "Pseudo Light Switch",
+  "version": "1.0.0",
+  "documentation": "https://github.com/Aulos/pseudo-light-switch",
+  "issue_tracker": "https://github.com/Aulos/pseudo-light-switch/issues",
+  "codeowners": [
+    "@Aulos"
+  ],
+  "config_flow": true,
+  "iot_class": "local_push",
+  "integration_type": "helper",
+  "requirements": []
+}
