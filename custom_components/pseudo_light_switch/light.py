@@ -138,11 +138,11 @@ class PseudoLightSwitch(LightEntity):
 
     @property
     def available(self) -> bool:
+        # Only the on/off source gates availability; the underlying light may
+        # be temporarily offline (e.g. a Zigbee bulb that's dropped off) and
+        # we still want the pseudo light to reflect the source's state.
         source = self.hass.states.get(self._source_entity_id)
-        light = self.hass.states.get(self._light_entity_id)
-        if source is None or source.state == STATE_UNAVAILABLE:
-            return False
-        return not (light is None or light.state == STATE_UNAVAILABLE)
+        return source is not None and source.state != STATE_UNAVAILABLE
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
