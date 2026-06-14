@@ -101,10 +101,14 @@ class PseudoLightSwitch(LightEntity):
 
         # mirrored from the underlying light
         self._attr_brightness: int | None = None
-        # color_mode and supported_color_modes must be non-None at add-time
-        # or HA's capability_attributes raises HomeAssistantError
-        self._attr_color_mode: ColorMode = ColorMode.UNKNOWN
-        self._attr_supported_color_modes: set[ColorMode] = {ColorMode.UNKNOWN}
+        # color_mode and supported_color_modes must be valid (non-UNKNOWN) at
+        # add-time, or HA's capability_attributes raises HomeAssistantError
+        # (since 2026.6 the supported set is validated against ColorMode.*;
+        # UNKNOWN is explicitly rejected). ONOFF is the universal fallback —
+        # the pre-population below and the state-change listener overwrite
+        # with the real values from the underlying light.
+        self._attr_color_mode: ColorMode = ColorMode.ONOFF
+        self._attr_supported_color_modes: set[ColorMode] = {ColorMode.ONOFF}
         self._attr_color_temp_kelvin: int | None = None
         self._attr_hs_color: tuple[float, float] | None = None
         self._attr_rgb_color: tuple[int, int, int] | None = None
@@ -222,9 +226,13 @@ class PseudoLightSwitch(LightEntity):
             parsed: set[ColorMode] = set()
             for raw in supported:
                 try:
-                    parsed.add(ColorMode(str(raw)))
+                    mode = ColorMode(str(raw))
                 except ValueError:
                     continue
+                # UNKNOWN is rejected by HA's validator in the supported set
+                if mode == ColorMode.UNKNOWN:
+                    continue
+                parsed.add(mode)
             if parsed:
                 self._attr_supported_color_modes = parsed
 
