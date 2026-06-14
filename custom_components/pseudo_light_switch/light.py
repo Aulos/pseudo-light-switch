@@ -101,7 +101,10 @@ class PseudoLightSwitch(LightEntity):
 
         # mirrored from the underlying light
         self._attr_brightness: int | None = None
-        self._attr_color_mode: ColorMode | None = None
+        # color_mode and supported_color_modes must be non-None at add-time
+        # or HA's capability_attributes raises HomeAssistantError
+        self._attr_color_mode: ColorMode = ColorMode.UNKNOWN
+        self._attr_supported_color_modes: set[ColorMode] = {ColorMode.UNKNOWN}
         self._attr_color_temp_kelvin: int | None = None
         self._attr_hs_color: tuple[float, float] | None = None
         self._attr_rgb_color: tuple[int, int, int] | None = None
@@ -110,8 +113,12 @@ class PseudoLightSwitch(LightEntity):
         self._attr_white: int | None = None
         self._attr_effect: str | None = None
         self._attr_effect_list: list[str] | None = None
-        self._attr_supported_color_modes: set[ColorMode] | None = None
         self._attr_supported_features: LightEntityFeature = LightEntityFeature(0)
+
+        # Pre-populate from the underlying light if it's already there, so the
+        # entity's capabilities are correct from the first state push (not UNKNOWN).
+        if (light_state := hass.states.get(light_entity_id)) is not None:
+            self._refresh_light_attrs(light_state)
 
     # ----- live state properties ------------------------------------------------
 
